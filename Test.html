@@ -1,1 +1,35 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>Test</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  html,body{ margin:0; padding:0; height:100%; overflow:hidden; background:#000; }
+  /* canvas ต้องเต็มจอ และ ให้ความหนาแน่นพิกเซลถูกต้อง */
+  #stars {
+    display:block;
+    width:100vw;
+    height:100vh;
+  }
+</style>
+</head>
+<body>
+
+<!-- สำคัญ: id ต้องตรงกับที่สคริปต์ใช้ --> 
+<canvas id="stars"></canvas>
+
+<!-- โหลดสคริปต์จาก jsDelivr (defer ให้รอ DOM เสร็จ) -->
 <script src="https://cdn.jsdelivr.net/gh/Bunnyfly-Game/scrti@main/script1.js" defer></script>
+
+<!-- debug helper: จะพิมพ์ใน console ถ้ามีปัญหาโหลดไฟล์ -->
+<script>
+window.addEventListener('load', function(){
+  console.log('page loaded');
+  // เช็กว่า element อยู่จริง
+  console.log('stars element:', document.getElementById('stars'));
+});
+</script>
+
+</body>
+</html>
