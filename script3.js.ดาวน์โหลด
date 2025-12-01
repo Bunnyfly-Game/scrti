@@ -1,0 +1,6 @@
+const link = document.createElement('a');
+link.href = 'https://www.theoadv.com/';
+link.className = 'contact';
+link.textContent = 'Theoadv.com';
+
+document.getElementById('link-container').appendChild(link);
