@@ -1,35 +1,325 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
 <meta charset="utf-8" />
-<title>Test</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Live Withdraw List</title>
 <style>
-  html,body{ margin:0; padding:0; height:100%; overflow:hidden; background:#000; }
-  /* canvas ต้องเต็มจอ และ ให้ความหนาแน่นพิกเซลถูกต้อง */
-  #stars {
-    display:block;
-    width:100vw;
-    height:100vh;
+  :root{
+    --bg1: #081826;
+    --card-grad1: linear-gradient(135deg, #2b2e8b 0%, #6a3fb3 40%, #7fb6e6 100%);
+    --glass: rgba(255,255,255,0.06);
+    --accent: #3ff0ff;
+    --muted: rgba(255,255,255,0.65);
+    --gold: #ffce00;
+    --pink: #ff66d6;
+    --shadow: 0 8px 30px rgba(6,12,25,0.6);
+    font-family: 'Inter', system-ui, -apple-system, "Sarabun", Roboto, "Noto Sans Thai", sans-serif;
   }
+  html,body{height:100%;margin:0;background: radial-gradient(1200px 600px at 10% 10%, rgba(255,230,220,0.06), transparent),
+                    linear-gradient(180deg,#061020 0%, #071826 40%); color:#fff;-webkit-font-smoothing:antialiased;}
+  .wrap{
+    max-width:920px;
+    margin:36px auto;
+    padding:26px;
+  }
+
+  .panel{
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border-radius:18px;
+    padding:18px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(255,255,255,0.06);
+    position:relative;
+    overflow:hidden;
+  }
+  .panel:before{
+    content:"";
+    position:absolute;left:-40%;top:-20%;width:180%;height:160%;
+    background: radial-gradient(circle at 10% 10%, rgba(80,200,255,0.06), transparent 8%),
+                linear-gradient(90deg, rgba(255,120,190,0.03), rgba(100,180,255,0.03));
+    transform: rotate(-12deg);
+    pointer-events:none;
+  }
+
+  .title{
+    display:flex;align-items:center;gap:12px;margin-bottom:14px;
+    font-weight:700;color:var(--accent);font-size:20px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  }
+  .title .icon{
+    width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#00f6ff33,#7a66ff55);
+    display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  .list{
+    margin-top:12px; display:flex;flex-direction:column;gap:12px; max-height:540px; overflow:hidden;
+  }
+
+  .item{
+    display:grid;grid-template-columns: auto 1fr auto;align-items:center;
+    gap:12px;padding:14px;border-radius:12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 6px 18px rgba(10,12,20,0.6);
+    position:relative; transform-origin: top center;
+    overflow:hidden;
+  }
+
+  .item .bank {
+    width:56px;height:56px;border-radius:12px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:18px;
+    border-left:6px solid rgba(255,255,255,0.06);
+  }
+  .meta{
+    display:flex;flex-direction:column;
+  }
+  .name{
+    font-weight:700;font-size:18px;color:#fff;
+  }
+  .phone{
+    font-size:13px;color:var(--muted);margin-top:6px;
+  }
+
+  .amount{
+    text-align:right;min-width:140px;
+  }
+  .amount .money{
+    font-weight:800;font-size:20px;color:var(--pink);display:block;
+    text-shadow: 0 6px 22px rgba(0,0,0,0.6);
+  }
+  .amount .money.big { color: var(--gold); font-size:22px; }
+  .amount .status{ font-size:13px;color:var(--muted); margin-top:8px; display:flex; gap:8px; align-items:center; justify-content:flex-end; }
+
+  /* small check icon */
+  .check {
+    width:18px;height:18px;border-radius:50%;background:linear-gradient(180deg,#8ed0ff,#6a90ff);
+    display:inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    position:relative;
+  }
+  .check:after{
+    content:""; position:absolute; left:4px; top:2px; width:6px; height:10px; border-right:2px solid #fff; border-bottom:2px solid #fff; transform: rotate(40deg);
+  }
+
+  /* accent bar left */
+  .item:after{
+    content:"";
+    position:absolute;left:8px;top:8px;bottom:8px;width:6px;border-radius:8px;background:linear-gradient(180deg,#22f7ff,#7c5cff);
+    opacity:0.98;
+  }
+
+  /* animations */
+  .anim-in { animation: slideDown .5s ease both; }
+  @keyframes slideDown {
+    from { transform: translateY(-20px) scale(.98); opacity:0; }
+    to { transform: translateY(0) scale(1); opacity:1; }
+  }
+
+  /* controls */
+  .controls { margin-top:14px; display:flex; gap:8px; align-items:center; }
+  .btn {
+    background:linear-gradient(180deg,#0ea5a5,#006b6b); color:#fff;padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:700;
+  }
+  .btn.stop{ background:linear-gradient(180deg,#ff5c7c,#d33); }
+
+  /* responsive */
+  @media (max-width:640px){
+    .wrap{ padding:12px; }
+    .item { grid-template-columns: auto 1fr auto; gap:8px; padding:12px; }
+    .bank{ width:48px;height:48px;font-size:16px; }
+    .amount{ min-width:110px; }
+  }
+
 </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="panel">
+      <div class="title"><div class="icon">🔔</div> รายการถอนอัตโนมัติล่าสุด</div>
 
-<!-- สำคัญ: id ต้องตรงกับที่สคริปต์ใช้ --> 
-<canvas id="stars"></canvas>
+      <div class="list" id="withdrawList" role="list" aria-live="polite"></div>
 
-<!-- โหลดสคริปต์จาก jsDelivr (defer ให้รอ DOM เสร็จ) -->
-<script src="https://cdn.jsdelivr.net/gh/Bunnyfly-Game/scrti@main/script1.js" defer></script>
+      <div class="controls">
+        <button id="btnPause" class="btn">หยุด/เริ่ม</button>
+        <label style="color:var(--muted);margin-left:12px;font-size:13px">
+          ความถี่: <span id="freqLabel">3</span>s
+        </label>
+        <input id="freq" type="range" min="1" max="8" value="3" style="margin-left:6px" />
+      </div>
+    </div>
+  </div>
 
-<!-- debug helper: จะพิมพ์ใน console ถ้ามีปัญหาโหลดไฟล์ -->
 <script>
-window.addEventListener('load', function(){
-  console.log('page loaded');
-  // เช็กว่า element อยู่จริง
-  console.log('stars element:', document.getElementById('stars'));
-});
-</script>
+/* ====== Config ====== */
+const MAX_ITEMS = 6;        // เก็บสูงสุดกี่รายการบนหน้า
+let INTERVAL_SEC = 3;       // ทุกกี่วินาที เพิ่มรายการใหม่
+/* ===================== */
 
+/* ตัวอย่างข้อมูลสำหรับสุ่ม */
+const banks = [
+  { id:'SCB', color:'#5b2b9b' },
+  { id:'KTB', color:'#1e90ff' },
+  { id:'BBL', color:'#f6c941' },
+  { id:'KBANK', color:'#7b2be3' },
+  { id:'KBank', color:'#7b2be3' },
+  { id:'GSB', color:'#6b8a2a' },
+  { id:'BAY', color:'#ff6a00' }
+];
+
+const thaiNames = [
+  "สุนีย์","ธิชานามดี","สิริประภา","อรุณี","พิสมัย","ธนวัฒน์","ณิชา","รุ่งโรจน์",
+  "สมชาย","ดวงใจ","มณี","กิ่งก้าน","พิมพ์ใจ","ภาคิน","จิราภา","นิรมล"
+];
+
+/* helpers */
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function pick(arr){ return arr[randInt(0,arr.length-1)]; }
+function maskPhone(){
+  const start = randInt(80,99); // 2 digits
+  const mid = randInt(100,999);
+  return `${start}-${String(mid).padStart(3,'0')}-XXXX`;
+}
+function fmtMoney(num){
+  return new Intl.NumberFormat('th-TH').format(num) + ' ฿';
+}
+function nowString(){
+  const d = new Date();
+  const opts = { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' };
+  // custom TH month short - we'll manually format day month year time
+  const day = d.getDate().toString().padStart(2,'0');
+  const month = d.toLocaleString('th-TH', { month: 'short' });
+  const year = d.getFullYear(); // keep CE
+  const time = d.toTimeString().split(' ')[0];
+  return `${day} ${month} ${year} ${time}`;
+}
+
+/* สุ่มยอดให้สมจริง: บางรายการเล็ก บางรายการใหญ่ (น้ำหนัก) */
+function randAmount(){
+  const r = Math.random();
+  if(r < 0.55) return randInt(300,3500);              // small
+  if(r < 0.85) return randInt(3500,25000);            // medium
+  if(r < 0.97) return randInt(25000,150000);          // large
+  return randInt(150000,600000);                      // very large (rare)
+}
+
+/* สร้าง DOM element รายการหนึ่ง */
+function createItem(){
+  const bank = pick(banks);
+  const name = pick(thaiNames);
+  const phone = maskPhone();
+  const amount = randAmount();
+  const big = amount >= 50000;
+  const time = nowString();
+
+  const item = document.createElement('div');
+  item.className = 'item anim-in';
+  item.setAttribute('role','listitem');
+
+  const bankDiv = document.createElement('div');
+  bankDiv.className = 'bank';
+  bankDiv.style.background = `linear-gradient(135deg, ${shade(bank.color,0.3)}, ${bank.color})`;
+  bankDiv.textContent = bank.id;
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const nm = document.createElement('div'); nm.className='name'; nm.textContent = `${name} (${phone})`;
+  const ph = document.createElement('div'); ph.className='phone'; ph.textContent = time;
+  meta.appendChild(nm); meta.appendChild(ph);
+
+  const right = document.createElement('div'); right.className = 'amount';
+  const money = document.createElement('div'); money.className = 'money' + (big? ' big' : ''); money.textContent = fmtMoney(amount);
+  const status = document.createElement('div'); status.className = 'status';
+  status.innerHTML = '<span class="check" aria-hidden="true"></span><span style="opacity:.9">โอนแล้ว</span>';
+  right.appendChild(money); right.appendChild(status);
+
+  item.appendChild(bankDiv);
+  item.appendChild(meta);
+  item.appendChild(right);
+
+  // attach metadata for possible later use
+  item.dataset.amount = amount;
+  return item;
+}
+
+/* ฟังก์ชันช่วยปรับสี (ทำให้มีไลท์) */
+function shade(hex,percent){
+  // hex like #rrggbb
+  const f = hex.slice(1);
+  const R = parseInt(f.substring(0,2),16);
+  const G = parseInt(f.substring(2,4),16);
+  const B = parseInt(f.substring(4,6),16);
+  const t = percent < 0 ? 0 : 255;
+  const p = Math.abs(percent);
+  const Rn = Math.round((t - R) * p) + R;
+  const Gn = Math.round((t - G) * p) + G;
+  const Bn = Math.round((t - B) * p) + B;
+  return `#${toHex(Rn)}${toHex(Gn)}${toHex(Bn)}`;
+}
+function toHex(n){ return (n<16? '0':'') + n.toString(16); }
+
+/* main */
+const listEl = document.getElementById('withdrawList');
+let running = true;
+let timer = null;
+
+/* เพิ่มรายการใหม่ด้านบน และลบเก่าเมื่อเกิน MAX_ITEMS */
+function pushNew(){
+  const item = createItem();
+  // prepend
+  listEl.prepend(item);
+
+  // ถ้าเกิน ให้ไล่ออกจากล่างสุด
+  while(listEl.children.length > MAX_ITEMS){
+    // animate out: fade/scale (simple)
+    const last = listEl.lastElementChild;
+    if(last){
+      last.style.transition = 'transform .25s ease, opacity .25s ease';
+      last.style.transform = 'translateY(12px) scale(.98)';
+      last.style.opacity = '0';
+      setTimeout(()=> last.remove(), 260);
+    } else break;
+  }
+}
+
+/* start interval */
+function startAuto(){
+  if(timer) clearInterval(timer);
+  timer = setInterval(()=> {
+    if(running) pushNew();
+  }, INTERVAL_SEC * 1000);
+}
+
+/* stop */
+function stopAuto(){
+  if(timer) clearInterval(timer);
+  timer = null;
+}
+
+/* init: add some initial items */
+for(let i=0;i<4;i++){
+  listEl.appendChild(createItem());
+}
+
+/* start default */
+startAuto();
+
+/* controls */
+document.getElementById('btnPause').addEventListener('click', ()=>{
+  running = !running;
+  document.getElementById('btnPause').textContent = running? 'หยุด/เริ่ม' : 'หยุด/เริ่ม (หยุดชั่วคราว)';
+});
+
+const freq = document.getElementById('freq');
+const freqLabel = document.getElementById('freqLabel');
+freq.addEventListener('input', (e)=>{
+  INTERVAL_SEC = Number(e.target.value);
+  freqLabel.textContent = INTERVAL_SEC;
+  startAuto();
+});
+
+/* Expose push for debugging (console) */
+window._pushNewItem = pushNew;
+</script>
 </body>
 </html>
